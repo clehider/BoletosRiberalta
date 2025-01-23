@@ -1,3 +1,5 @@
+import GestionSocios from "./components/GestionSocios"
+import RegistroIngresos from "./components/RegistroIngresos"
 import { useState, useEffect } from "react"
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom"
 import { onAuthStateChanged } from "firebase/auth"
@@ -46,6 +48,8 @@ const App = () => {
               <Route path="/venta-pasajes" element={user ? <VentaPasajes /> : <Navigate to="/login" />} />
               <Route path="/vehiculos" element={user ? <GestionVehiculos /> : <Navigate to="/login" />} />
               <Route path="/conductores" element={user ? <GestionConductores /> : <Navigate to="/login" />} />
+              <Route path="/socios" element={user ? <GestionSocios /> : <Navigate to="/login" />} />
+              <Route path="/ingresos" element={user ? <RegistroIngresos /> : <Navigate to="/login" />} />             
               <Route path="/reportes" element={user ? <Reportes /> : <Navigate to="/login" />} />
               <Route path="/caja-chica" element={user ? <CajaChica /> : <Navigate to="/login" />} />
               <Route path="/gastos" element={user ? <Gastos /> : <Navigate to="/login" />} />

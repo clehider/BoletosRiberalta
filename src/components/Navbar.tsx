@@ -20,6 +20,8 @@ const Navbar: React.FC = () => {
     { path: "/vehiculos", icon: <Bus className="w-4 h-4" />, label: "Gestión de Vehículos" },
     { path: "/conductores", icon: <Users className="w-4 h-4" />, label: "Gestión de Conductores" },
     { path: "/reportes", icon: <FileText className="w-4 h-4" />, label: "Reportes" },
+    { path: "/socios", icon: <Users className="w-4 h-4" />, label: "Gestión de Socios" },  
+    { path: "/ingresos", icon: <Receipt className="w-4 h-4" />, label: "Registro de Ingresos" },   
     { path: "/caja-chica", icon: <Wallet className="w-4 h-4" />, label: "Caja Chica" },
     { path: "/gastos", icon: <Receipt className="w-4 h-4" />, label: "Gastos" },
   ]

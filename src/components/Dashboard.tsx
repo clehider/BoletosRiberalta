@@ -4,99 +4,71 @@ import { db } from '../firebase/config';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Socio, Ingreso } from '../models/Socio';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState({
-    totalSalidas: 0,
-    totalPasajeros: 0,
+    totalSocios: 0,
+    totalVehiculos: 0,
     totalIngresos: 0,
-    totalGastos: 0,
-    vehiculosActivos: 0,
+    sociosChoferes: 0,
   });
 
-  const [ventasPorMes, setVentasPorMes] = useState<number[]>([]);
-  const [gastosPorCategoria, setGastosPorCategoria] = useState<{ [key: string]: number }>({});
+  const [ingresosPorTipo, setIngresosPorTipo] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     const fetchData = async () => {
-      // Obtener ventas
-      const ventasQuery = query(collection(db, 'ventas'));
-      const ventasSnapshot = await getDocs(ventasQuery);
-      const ventas = ventasSnapshot.docs.map(doc => doc.data());
+      // Obtener socios
+      const sociosQuery = query(collection(db, 'socios'));
+      const sociosSnapshot = await getDocs(sociosQuery);
+      const socios = sociosSnapshot.docs.map(doc => doc.data() as Socio);
 
-      // Obtener gastos
-      const gastosQuery = query(collection(db, 'gastos'));
-      const gastosSnapshot = await getDocs(gastosQuery);
-      const gastos = gastosSnapshot.docs.map(doc => doc.data());
-
-      // Obtener vehículos
-      const vehiculosQuery = query(collection(db, 'vehiculos'));
-      const vehiculosSnapshot = await getDocs(vehiculosQuery);
-      const vehiculos = vehiculosSnapshot.docs.map(doc => doc.data());
+      // Obtener ingresos
+      const ingresosQuery = query(collection(db, 'ingresos'));
+      const ingresosSnapshot = await getDocs(ingresosQuery);
+      const ingresos = ingresosSnapshot.docs.map(doc => doc.data() as Ingreso);
 
       // Calcular estadísticas
-      const totalSalidas = ventas.length;
-      const totalPasajeros = ventas.length; // Asumiendo un pasajero por venta
-      const totalIngresos = ventas.reduce((sum, venta) => sum + (venta.monto || 0), 0);
-      const totalGastos = gastos.reduce((sum, gasto) => sum + (gasto.monto || 0), 0);
-      const vehiculosActivos = vehiculos.length;
+      const totalSocios = socios.length;
+      const totalVehiculos = socios.reduce((sum, socio) => sum + socio.vinetas.length, 0);
+      const totalIngresos = ingresos.reduce((sum, ingreso) => sum + ingreso.monto, 0);
+      const sociosChoferes = socios.filter(socio => socio.esChofer).length;
 
       setStats({
-        totalSalidas,
-        totalPasajeros,
+        totalSocios,
+        totalVehiculos,
         totalIngresos,
-        totalGastos,
-        vehiculosActivos,
+        sociosChoferes,
       });
 
-      // Calcular ventas por mes (últimos 6 meses)
-      const ventasPorMes = Array(6).fill(0);
-      const hoy = new Date();
-      ventas.forEach(venta => {
-        const fechaVenta = (venta.fecha as Timestamp).toDate();
-        const mesesDeDiferencia = (hoy.getMonth() - fechaVenta.getMonth() + 12) % 12;
-        if (mesesDeDiferencia < 6) {
-          ventasPorMes[5 - mesesDeDiferencia] += venta.monto || 0;
-        }
+      // Calcular ingresos por tipo
+      const ingresosPorTipo: { [key: string]: number } = {};
+      ingresos.forEach(ingreso => {
+        ingresosPorTipo[ingreso.tipo] = (ingresosPorTipo[ingreso.tipo] || 0) + ingreso.monto;
       });
-      setVentasPorMes(ventasPorMes);
-
-      // Calcular gastos por categoría
-      const gastosPorCategoria: { [key: string]: number } = {};
-      gastos.forEach(gasto => {
-        const categoria = gasto.categoria || 'Otros';
-        gastosPorCategoria[categoria] = (gastosPorCategoria[categoria] || 0) + (gasto.monto || 0);
-      });
-      setGastosPorCategoria(gastosPorCategoria);
+      setIngresosPorTipo(ingresosPorTipo);
     };
 
     fetchData();
   }, []);
 
-  const ventasChartData = {
-    labels: ['Hace 6 meses', 'Hace 5 meses', 'Hace 4 meses', 'Hace 3 meses', 'Hace 2 meses', 'Último mes'],
+  const ingresosPorTipoData = {
+    labels: Object.keys(ingresosPorTipo),
     datasets: [
       {
-        label: 'Ventas por mes',
-        data: ventasPorMes,
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-      },
-    ],
-  };
-
-  const gastosChartData = {
-    labels: Object.keys(gastosPorCategoria),
-    datasets: [
-      {
-        data: Object.values(gastosPorCategoria),
+        data: Object.values(ingresosPorTipo),
         backgroundColor: [
           'rgba(255, 99, 132, 0.5)',
           'rgba(54, 162, 235, 0.5)',
           'rgba(255, 206, 86, 0.5)',
           'rgba(75, 192, 192, 0.5)',
           'rgba(153, 102, 255, 0.5)',
+          'rgba(255, 159, 64, 0.5)',
+          'rgba(199, 199, 199, 0.5)',
+          'rgba(83, 102, 255, 0.5)',
+          'rgba(40, 159, 64, 0.5)',
         ],
       },
     ],
@@ -105,21 +77,21 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>Total de Salidas</CardTitle>
+            <CardTitle>Total de Socios</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.totalSalidas}</p>
+            <p className="text-4xl font-bold">{stats.totalSocios}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Total de Pasajeros</CardTitle>
+            <CardTitle>Total de Vehículos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{stats.totalPasajeros}</p>
+            <p className="text-4xl font-bold">{stats.totalVehiculos}</p>
           </CardContent>
         </Card>
         <Card>
@@ -127,41 +99,25 @@ const Dashboard: React.FC = () => {
             <CardTitle>Ingresos Totales</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">${stats.totalIngresos.toFixed(2)}</p>
+            <p className="text-4xl font-bold">{stats.totalIngresos.toFixed(2)} Bs</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Gastos Totales</CardTitle>
+            <CardTitle>Socios Choferes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">${stats.totalGastos.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehículos Activos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold">{stats.vehiculosActivos}</p>
+            <p className="text-4xl font-bold">{stats.sociosChoferes}</p>
           </CardContent>
         </Card>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Ventas por Mes</CardTitle>
+            <CardTitle>Ingresos por Tipo</CardTitle>
           </CardHeader>
           <CardContent>
-            <Bar data={ventasChartData} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Gastos por Categoría</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Pie data={gastosChartData} />
+            <Pie data={ingresosPorTipoData} />
           </CardContent>
         </Card>
       </div>
