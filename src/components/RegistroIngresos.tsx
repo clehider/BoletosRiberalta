@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Ingreso, Socio } from '../models/Socio';
+import { Socio } from '../models/Socio';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -77,26 +77,26 @@ const RegistroIngresos: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Registro de Ingresos</h1>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Registro de Ingresos</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button>Nuevo Ingreso</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">Nuevo Ingreso</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="bg-white dark:bg-gray-800">
             <DialogHeader>
-              <DialogTitle>Registrar Nuevo Ingreso</DialogTitle>
+              <DialogTitle className="text-gray-800 dark:text-white">Registrar Nuevo Ingreso</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="tipo">Tipo de Ingreso</Label>
+                  <Label htmlFor="tipo" className="text-gray-700 dark:text-gray-300">Tipo de Ingreso</Label>
                   <Select
                     value={formData.tipo}
                     onValueChange={(value) => setFormData({ ...formData, tipo: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                       <SelectValue placeholder="Seleccione el tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -109,30 +109,32 @@ const RegistroIngresos: React.FC = () => {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="monto">Monto (Bs)</Label>
+                  <Label htmlFor="monto" className="text-gray-700 dark:text-gray-300">Monto (Bs)</Label>
                   <Input
                     id="monto"
                     type="number"
                     value={formData.monto}
                     onChange={(e) => setFormData({ ...formData, monto: e.target.value })}
                     required
+                    className="bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="descripcion">Descripción</Label>
+                  <Label htmlFor="descripcion" className="text-gray-700 dark:text-gray-300">Descripción</Label>
                   <Input
                     id="descripcion"
                     value={formData.descripcion}
                     onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                    className="bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="socio">Socio</Label>
+                  <Label htmlFor="socio" className="text-gray-700 dark:text-gray-300">Socio</Label>
                   <Select
                     value={formData.socioId}
                     onValueChange={(value) => setFormData({ ...formData, socioId: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white">
                       <SelectValue placeholder="Seleccione el socio" />
                     </SelectTrigger>
                     <SelectContent>
@@ -145,7 +147,7 @@ const RegistroIngresos: React.FC = () => {
                   </Select>
                 </div>
               </div>
-              <Button type="submit" className="w-full">Registrar Ingreso</Button>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">Registrar Ingreso</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -153,13 +155,13 @@ const RegistroIngresos: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {tiposIngresos.map((tipo) => (
-          <Card key={tipo}>
+          <Card key={tipo} className="bg-white dark:bg-gray-700">
             <CardHeader>
-              <CardTitle>{tipo}</CardTitle>
+              <CardTitle className="text-gray-800 dark:text-white">{tipo}</CardTitle>
             </CardHeader>
             <CardContent>
               <Button
-                className="w-full"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
                   setFormData({ ...formData, tipo });
                   setIsOpen(true);

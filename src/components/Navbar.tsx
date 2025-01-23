@@ -20,14 +20,14 @@ const Navbar: React.FC = () => {
     { path: "/vehiculos", icon: <Bus className="w-4 h-4" />, label: "Gestión de Vehículos" },
     { path: "/conductores", icon: <Users className="w-4 h-4" />, label: "Gestión de Conductores" },
     { path: "/reportes", icon: <FileText className="w-4 h-4" />, label: "Reportes" },
-    { path: "/socios", icon: <Users className="w-4 h-4" />, label: "Gestión de Socios" },  
-    { path: "/ingresos", icon: <Receipt className="w-4 h-4" />, label: "Registro de Ingresos" },   
     { path: "/caja-chica", icon: <Wallet className="w-4 h-4" />, label: "Caja Chica" },
     { path: "/gastos", icon: <Receipt className="w-4 h-4" />, label: "Gastos" },
+    { path: "/socios", icon: <Users className="w-4 h-4" />, label: "Gestión de Socios" },
+    { path: "/ingresos", icon: <Receipt className="w-4 h-4" />, label: "Registro de Ingresos" },
   ]
 
   return (
-    <nav className="bg-white border-b shadow-sm dark:bg-gray-900">
+    <nav className="bg-gray-100 border-b shadow-sm dark:bg-gray-800">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -38,12 +38,12 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-1">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-700"
               >
                 {item.icon}
                 <span>{item.label}</span>
@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                      className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                     >
                       {item.icon}
                       <span>{item.label}</span>
