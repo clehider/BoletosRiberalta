@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { db } from "../firebase/config"
 import { collection, addDoc, getDocs, query, where, Timestamp, updateDoc, doc, deleteDoc } from "firebase/firestore"
-import { Bus, Settings, Plus, Trash } from "lucide-react"
+import { Bus, Settings, Plus, Trash } from 'lucide-react'
 import jsPDF from "jspdf"
 import "jspdf-autotable"
 
@@ -65,7 +65,6 @@ const VentaPasajes: React.FC = () => {
   const [vehiculoSeleccionado, setVehiculoSeleccionado] = useState<Vehiculo | null>(null)
   const [configuracionModalOpen, setConfiguracionModalOpen] = useState(false)
   const [nuevoDestino, setNuevoDestino] = useState("")
-  //const [editandoDestinos, setEditandoDestinos] = useState(false)
 
   useEffect(() => {
     cargarDatos()
@@ -110,20 +109,46 @@ const VentaPasajes: React.FC = () => {
     setVentaAbierta(!ventaSnapshot.empty)
   }
 
-  useEffect(() => {
-    if (vehiculoSeleccionado) {
-      const asientosArray: Asiento[] = Array.from({ length: vehiculoSeleccionado.asientos }, (_, i) => ({
-        numero: i + 1,
-        ocupado: i === 0, // El asiento 1 es el conductor
-      }))
-      setAsientos(asientosArray)
-    }
-  }, [vehiculoSeleccionado])
-
-  const handleVehiculoChange = (vehiculoId: string) => {
+  const handleVehiculoChange = async (vehiculoId: string) => {
+    console.log("Vehículo seleccionado:", vehiculoId)
     const vehiculo = vehiculos.find((v) => v.id === vehiculoId)
-    setVehiculoSeleccionado(vehiculo || null)
-    setBoleto((prev) => ({ ...prev, vehiculo: vehiculoId }))
+    if (vehiculo) {
+      console.log("Datos del vehículo:", vehiculo)
+      setVehiculoSeleccionado(vehiculo)
+      setBoleto((prev) => ({ ...prev, vehiculo: vehiculoId }))
+
+      try {
+        const boletosQuery = query(
+          collection(db, "boletos"),
+          where("vehiculo", "==", vehiculoId),
+          where("fecha", ">=", Timestamp.fromDate(new Date(new Date().setHours(0,0,0,0)))),
+          where("fecha", "<=", Timestamp.fromDate(new Date(new Date().setHours(23,59,59,999))))
+        )
+        const boletosSnapshot = await getDocs(boletosQuery)
+        const asientosOcupados = boletosSnapshot.docs.map(doc => doc.data().asiento)
+        console.log("Asientos ocupados:", asientosOcupados)
+
+        const asientosArray: Asiento[] = Array.from(
+          { length: vehiculo.asientos },
+          (_, i) => ({
+            numero: i + 1,
+            ocupado: i === 0 || asientosOcupados.includes((i + 1).toString())
+          })
+        )
+        console.log("Asientos generados:", asientosArray)
+        setAsientos(asientosArray)
+      } catch (error) {
+        console.error("Error al cargar asientos ocupados:", error)
+        const asientosArray: Asiento[] = Array.from(
+          { length: vehiculo.asientos },
+          (_, i) => ({
+            numero: i + 1,
+            ocupado: i === 0
+          })
+        )
+        setAsientos(asientosArray)
+      }
+    }
   }
 
   const handleAsientoClick = (asiento: Asiento) => {
@@ -146,7 +171,7 @@ const VentaPasajes: React.FC = () => {
 
     try {
       const nuevoBoleto: Boleto = {
-        id: "", // Será reemplazado por el ID generado por Firestore
+        id: "",
         ...boleto,
         asiento: asientoSeleccionado.toString(),
         fecha: Timestamp.fromDate(new Date()),
@@ -391,25 +416,42 @@ const VentaPasajes: React.FC = () => {
                 />
               </div>
 
-              {vehiculoSeleccionado && (
-                <div>
-                  <Label>Selección de Asiento</Label>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {asientos.map((asiento) => (
-                      <Button
-                        key={asiento.numero}
-                        type="button"
-                        variant={asiento.numero === 1 ? "destructive" : asiento.ocupado ? "secondary" : "outline"}
-                        className={`h-16 ${asiento.numero === asientoSeleccionado ? "ring-2 ring-primary" : ""}`}
-                        disabled={asiento.ocupado || asiento.numero === 1}
-                        onClick={() => handleAsientoClick(asiento)}
-                      >
-                        {asiento.numero === 1 ? "Conductor" : `Asiento ${asiento.numero}`}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
+{vehiculoSeleccionado && (
+  <div className="mt-6 border rounded-lg p-4 bg-white shadow-sm">
+    <Label className="text-lg font-semibold mb-4 block">
+      Selección de Asiento - {vehiculoSeleccionado.placa}
+    </Label>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 p-4">
+      {asientos.map((asiento) => (
+        <Button
+          key={asiento.numero}
+          type="button"
+          variant={asiento.numero === 1 ? "destructive" : asiento.ocupado ? "secondary" : "outline"}
+          className={`
+            h-24 w-full flex flex-col items-center justify-center p-2
+            ${asiento.ocupado ? 'bg-gray-200 text-gray-500' : 'bg-white'}
+            ${asiento.numero === 1 ? 'bg-red-100 text-red-700' : ''}
+            ${asiento.numero === asientoSeleccionado ? 'ring-2 ring-blue-500 ring-offset-2' : ''}
+            border-2 hover:bg-gray-50 transition-all duration-200
+          `}
+          disabled={asiento.ocupado || asiento.numero === 1}
+          onClick={() => handleAsientoClick(asiento)}
+        >
+          <span className="text-xs font-medium mb-1">
+            {asiento.numero === 1 ? 'Conductor' : 'Asiento'}
+          </span>
+          <span className="text-xl font-bold">
+            {asiento.numero}
+          </span>
+          {asiento.ocupado && asiento.numero !== 1 && (
+            <span className="text-xs text-red-500 mt-1">Ocupado</span>
+          )}
+        </Button>
+      ))}
+    </div>
+  </div>
+)}
+
             </div>
           </form>
 
@@ -599,4 +641,3 @@ const VentaPasajes: React.FC = () => {
 }
 
 export default VentaPasajes
-
