@@ -1,21 +1,31 @@
 import { Timestamp } from 'firebase/firestore';
 
+export interface Vehiculo {
+  id: string;
+  marca: string;
+  modelo: string;
+  placa: string;
+  vineta: string;
+}
+
+export interface Chofer {
+  id: string;
+  nombre: string;
+  apellidos: string;
+  licencia: string;
+}
+
 export interface Socio {
   id: string;
   nombre: string;
   apellidos: string;
   ci: string;
+  fechaNacimiento: Timestamp;
+  direccion: string;
+  telefono: string;
+  email: string;
   fechaIngreso: Timestamp;
-  lineasCompradas: number;
-  vinetas: string[];
-  esChofer: boolean;
-  choferes?: string[];
-}
-
-export interface Ingreso {
-  tipo: 'SALIDAS' | 'CAMAS' | 'LINEA' | 'CHURRASCO' | 'MORTUORIA' | 'FEDERACION' | 'MENSUALIDAD' | 'MULTAS' | 'OTROS';
-  monto: number;
-  fecha: Timestamp;
-  descripcion?: string;
-  socioId?: string;
+  estado: 'Activo' | 'Inactivo';
+  vehiculos: Vehiculo[];
+  choferes: Chofer[];
 }

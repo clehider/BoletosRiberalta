@@ -1,4 +1,4 @@
-import initSociosIngresos from './firebase/initSociosIngresos';
+import { initSociosIngresos } from './firebase/initSociosIngresos';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -11,6 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 initSociosIngresos().then(() => {
   console.log('Base de datos inicializada con socios e ingresos de ejemplo');
-}).catch((error) => {
-  console.error('Error al inicializar la base de datos:', error);
+
+}).catch((error: Error) => {
+  console.error('Error al inicializar datos:', error);
 });

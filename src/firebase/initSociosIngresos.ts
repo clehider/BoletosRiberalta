@@ -1,58 +1,51 @@
-import { db } from './config';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { Socio, Ingreso } from '../models/Socio';
+import { db } from './config';
+import { Socio } from '../models/Socio';
 
-const initSociosIngresos = async () => {
-  try {
-    // Añadir socios de ejemplo
-    const sociosEjemplo: Omit<Socio, 'id'>[] = [
-      {
-        nombre: "Juan",
-        apellidos: "Pérez González",
-        ci: "1234567",
-        fechaIngreso: Timestamp.now(),
-        lineasCompradas: 1,
-        vinetas: ["ABC123", "DEF456"],
-        esChofer: true
-      },
-      {
-        nombre: "María",
-        apellidos: "López Rodríguez",
-        ci: "7654321",
-        fechaIngreso: Timestamp.now(),
-        lineasCompradas: 2,
-        vinetas: ["GHI789", "JKL012"],
-        esChofer: false,
-        choferes: ["Carlos Gómez", "Ana Martínez"]
-      }
-    ];
+export const initSociosIngresos = async () => {
+  const sociosCollection = collection(db, 'socios');
 
-    for (const socio of sociosEjemplo) {
-      await addDoc(collection(db, 'socios'), socio);
+  const sociosIniciales: Omit<Socio, 'id'>[] = [
+    {
+      nombre: 'Juan',
+      apellidos: 'Pérez',
+      ci: '1234567',
+      fechaNacimiento: Timestamp.fromDate(new Date('1980-01-01')),
+      direccion: 'Calle 123',
+      telefono: '12345678',
+      email: 'juan@example.com',
+      fechaIngreso: Timestamp.now(),
+      estado: 'Activo',
+      vehiculos: [
+        { id: '1', marca: 'Toyota', modelo: 'Corolla', placa: 'ABC123', vineta: 'V001' }
+      ],
+      choferes: [
+        { id: '1', nombre: 'Carlos', apellidos: 'Gómez', licencia: 'L001' },
+        { id: '2', nombre: 'Ana', apellidos: 'Martínez', licencia: 'L002' }
+      ]
+    },
+    {
+      nombre: 'María',
+      apellidos: 'González',
+      ci: '7654321',
+      fechaNacimiento: Timestamp.fromDate(new Date('1985-05-05')),
+      direccion: 'Avenida 456',
+      telefono: '87654321',
+      email: 'maria@example.com',
+      fechaIngreso: Timestamp.now(),
+      estado: 'Activo',
+      vehiculos: [
+        { id: '2', marca: 'Honda', modelo: 'Civic', placa: 'XYZ789', vineta: 'V002' }
+      ],
+      choferes: [
+        { id: '3', nombre: 'Pedro', apellidos: 'Rodríguez', licencia: 'L003' }
+      ]
     }
+  ];
 
-    console.log('Socios de ejemplo añadidos con éxito');
-
-    // Añadir ingresos de ejemplo
-    const tiposIngresos: Ingreso['tipo'][] = ['SALIDAS', 'CAMAS', 'LINEA', 'CHURRASCO', 'MORTUORIA', 'FEDERACION', 'MENSUALIDAD', 'MULTAS', 'OTROS'];
-    
-    for (const tipo of tiposIngresos) {
-      const ingresoEjemplo: Omit<Ingreso, 'id'> = {
-        tipo: tipo,
-        monto: Math.floor(Math.random() * 1000) + 100, // Monto aleatorio entre 100 y 1100
-        fecha: Timestamp.now(),
-        descripcion: `Ingreso por ${tipo}`,
-        socioId: "ID_ALEATORIO" // En una aplicación real, esto sería un ID válido de un socio
-      };
-
-      await addDoc(collection(db, 'ingresos'), ingresoEjemplo);
-    }
-
-    console.log('Ingresos de ejemplo añadidos con éxito');
-
-  } catch (error) {
-    console.error("Error al inicializar socios e ingresos:", error);
+  for (const socio of sociosIniciales) {
+    await addDoc(sociosCollection, socio);
   }
-};
 
-export default initSociosIngresos;
+  console.log('Datos iniciales de socios agregados');
+};
