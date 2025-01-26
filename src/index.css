@@ -74,3 +74,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos para impresión */
+@media print {
+  /* Oculta todo el contenido por defecto */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Muestra solo el contenido del ticket */
+  .dialog-content .border.p-4 {
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 8mm;
+    margin: 0;
+  }
+  
+  /* Asegura que solo se imprima el ticket */
+  .dialog-content .border.p-4 * {
+    visibility: visible;
+  }
+  
+  /* Oculta los botones durante la impresión */
+  .dialog-content .flex.justify-end {
+    display: none;
+  }
+  
+  /* Configuración de página */
+  @page {
+    size: 80mm auto;
+    margin: 0;
+    padding: 0;
+  }
+}
