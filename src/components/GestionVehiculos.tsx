@@ -8,18 +8,27 @@ interface Vehiculo {
   placa: string;
   capacidad: number;
   asientos: { [key: string]: string };
+  conductorId: string;  // Nueva propiedad
+}
+
+interface Conductor {
+  id: string;
+  nombre: string;
 }
 
 const GestionVehiculos: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [conductores, setConductores] = useState<Conductor[]>([]);
   const [nuevoVehiculo, setNuevoVehiculo] = useState({
     nombre: "",
     placa: "",
     capacidad: 6,
+    conductorId: ""
   });
 
   useEffect(() => {
     fetchVehiculos();
+    fetchConductores();
   }, []);
 
   const fetchVehiculos = async () => {
@@ -29,7 +38,14 @@ const GestionVehiculos: React.FC = () => {
     setVehiculos(vehiculosList);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fetchConductores = async () => {
+    const conductoresCollection = collection(db, "conductores");
+    const conductoresSnapshot = await getDocs(conductoresCollection);
+    const conductoresList = conductoresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conductor));
+    setConductores(conductoresList);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNuevoVehiculo(prev => ({
       ...prev,
@@ -48,28 +64,10 @@ const GestionVehiculos: React.FC = () => {
         ...nuevoVehiculo,
         asientos,
       });
-      setNuevoVehiculo({ nombre: "", placa: "", capacidad: 6 });
+      setNuevoVehiculo({ nombre: "", placa: "", capacidad: 6, conductorId: "" });
       fetchVehiculos();
     } catch (error) {
       console.error("Error al agregar vehículo:", error);
-    }
-  };
-
-  const editarVehiculo = async (id: string, nuevosDatos: Partial<Vehiculo>) => {
-    try {
-      await updateDoc(doc(db, "vehiculos", id), nuevosDatos);
-      fetchVehiculos();
-    } catch (error) {
-      console.error("Error al editar vehículo:", error);
-    }
-  };
-
-  const eliminarVehiculo = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, "vehiculos", id));
-      fetchVehiculos();
-    } catch (error) {
-      console.error("Error al eliminar vehículo:", error);
     }
   };
 
@@ -101,6 +99,17 @@ const GestionVehiculos: React.FC = () => {
           placeholder="Capacidad"
           className="mr-2 p-2 border rounded"
         />
+        <select
+          name="conductorId"
+          value={nuevoVehiculo.conductorId}
+          onChange={handleInputChange}
+          className="mr-2 p-2 border rounded"
+        >
+          <option value="">Seleccione un conductor</option>
+          {conductores.map(conductor => (
+            <option key={conductor.id} value={conductor.id}>{conductor.nombre}</option>
+          ))}
+        </select>
         <button type="submit" className="p-2 bg-blue-500 text-white rounded">
           Agregar Vehículo
         </button>
@@ -109,6 +118,7 @@ const GestionVehiculos: React.FC = () => {
         {vehiculos.map(vehiculo => (
           <div key={vehiculo.id} className="mb-2 p-2 border rounded">
             <p>{vehiculo.nombre} - {vehiculo.placa} (Capacidad: {vehiculo.capacidad})</p>
+            <p>Conductor: {conductores.find(c => c.id === vehiculo.conductorId)?.nombre}</p>
             <button
               onClick={() => editarVehiculo(vehiculo.id, { nombre: prompt("Nuevo nombre") || vehiculo.nombre })}
               className="mr-2 p-1 bg-yellow-500 text-white rounded"
