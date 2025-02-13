@@ -25,6 +25,7 @@ const GestionVehiculos: React.FC = () => {
     capacidad: 6,
     conductorId: ""
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVehiculos();
@@ -32,17 +33,27 @@ const GestionVehiculos: React.FC = () => {
   }, []);
 
   const fetchVehiculos = async () => {
-    const vehiculosCollection = collection(db, "vehiculos");
-    const vehiculosSnapshot = await getDocs(vehiculosCollection);
-    const vehiculosList = vehiculosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vehiculo));
-    setVehiculos(vehiculosList);
+    try {
+      const vehiculosCollection = collection(db, "vehiculos");
+      const vehiculosSnapshot = await getDocs(vehiculosCollection);
+      const vehiculosList = vehiculosSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Vehiculo));
+      setVehiculos(vehiculosList);
+    } catch (err) {
+      setError("Error al cargar vehículos");
+      console.error(err);
+    }
   };
 
   const fetchConductores = async () => {
-    const conductoresCollection = collection(db, "conductores");
-    const conductoresSnapshot = await getDocs(conductoresCollection);
-    const conductoresList = conductoresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conductor));
-    setConductores(conductoresList);
+    try {
+      const conductoresCollection = collection(db, "conductores");
+      const conductoresSnapshot = await getDocs(conductoresCollection);
+      const conductoresList = conductoresSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conductor));
+      setConductores(conductoresList);
+    } catch (err) {
+      setError("Error al cargar conductores");
+      console.error(err);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -55,6 +66,10 @@ const GestionVehiculos: React.FC = () => {
 
   const agregarVehiculo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!nuevoVehiculo.nombre || !nuevoVehiculo.placa || !nuevoVehiculo.conductorId) {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
     try {
       const asientos: { [key: string]: string } = {};
       for (let i = 1; i <= nuevoVehiculo.capacidad; i++) {
@@ -66,14 +81,36 @@ const GestionVehiculos: React.FC = () => {
       });
       setNuevoVehiculo({ nombre: "", placa: "", capacidad: 6, conductorId: "" });
       fetchVehiculos();
-    } catch (error) {
-      console.error("Error al agregar vehículo:", error);
+    } catch (err) {
+      setError("Error al agregar vehículo");
+      console.error(err);
+    }
+  };
+
+  const editarVehiculo = async (id: string, nuevosDatos: Partial<Vehiculo>) => {
+    try {
+      await updateDoc(doc(db, "vehiculos", id), nuevosDatos);
+      fetchVehiculos();
+    } catch (err) {
+      setError("Error al editar vehículo");
+      console.error(err);
+    }
+  };
+
+  const eliminarVehiculo = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "vehiculos", id));
+      fetchVehiculos();
+    } catch (err) {
+      setError("Error al eliminar vehículo");
+      console.error(err);
     }
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Gestión de Vehículos</h1>
+      {error && <p className="text-red-500">{error}</p>}
       <form onSubmit={agregarVehiculo} className="mb-4">
         <input
           type="text"
